@@ -1,0 +1,10 @@
+<scheme name="Darcula" version="142" parent_scheme="Darcula">
+  <attributes>
+    <!-- Same teal as type parameters in Java -->
+    <option name="ZSERIO_TEMPLATE_PARAMETER">
+      <value>
+        <option name="FOREGROUND" value="20999d"/>
+      </value>
+    </option>
+  </attributes>
+</scheme>

@@ -1,0 +1,420 @@
+// Grammar-Kit grammar for the Zserio language.
+//
+// Derived from the official ANTLR grammar (compiler/core/antlr/ZserioParser.g4 in https://github.com/ndsev/zserio).
+// The grammar is intentionally a bit more lenient than the compiler's one (for example, members of a compound type
+// may appear in any order) so that the editor keeps working while the user is typing. Semantic checks are left to the
+// zserio compiler.
+{
+  parserClass="org.zserio.intellij.parser.ZserioParser"
+  parserUtilClass="org.zserio.intellij.parser.ZserioParserUtil"
+
+  extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+
+  psiClassPrefix="Zserio"
+  psiImplClassSuffix="Impl"
+  psiPackage="org.zserio.intellij.psi"
+  psiImplPackage="org.zserio.intellij.psi.impl"
+
+  elementTypeHolderClass="org.zserio.intellij.psi.ZserioTypes"
+  elementTypeClass="org.zserio.intellij.psi.ZserioElementType"
+  tokenTypeClass="org.zserio.intellij.psi.ZserioTokenType"
+
+  tokens=[
+    AND='&'
+    ASSIGN='='
+    BANG='!'
+    COLON=':'
+    COMMA=','
+    DIVIDE='/'
+    DOT='.'
+    EQ='=='
+    GE='>='
+    GT='>'
+    LBRACE='{'
+    LBRACKET='['
+    LE='<='
+    LOGICAL_AND='&&'
+    LOGICAL_OR='||'
+    LPAREN='('
+    LSHIFT='<<'
+    LT='<'
+    MINUS='-'
+    MODULO='%'
+    MULTIPLY='*'
+    NE='!='
+    OR='|'
+    PLUS='+'
+    QUESTIONMARK='?'
+    RBRACE='}'
+    RBRACKET=']'
+    RPAREN=')'
+    SEMICOLON=';'
+    TILDE='~'
+    XOR='^'
+    ALIGN='align'
+    BIT_FIELD='bit'
+    BOOL='bool'
+    BITMASK='bitmask'
+    BYTES='bytes'
+    CASE='case'
+    CHOICE='choice'
+    CONST='const'
+    DEFAULT='default'
+    DEPRECATED='@deprecated'
+    ENUM='enum'
+    EXPLICIT='explicit'
+    EXTEND='extend'
+    EXTERN='extern'
+    FLOAT16='float16'
+    FLOAT32='float32'
+    FLOAT64='float64'
+    FUNCTION='function'
+    IF='if'
+    IMPLICIT='implicit'
+    IMPORT='import'
+    INDEX='@index'
+    INSTANTIATE='instantiate'
+    INT_FIELD='int'
+    INT16='int16'
+    INT32='int32'
+    INT64='int64'
+    INT8='int8'
+    ISSET='isset'
+    LENGTHOF='lengthof'
+    NUMBITS='numbits'
+    ON='on'
+    OPTIONAL='optional'
+    PACKAGE='package'
+    PACKED='packed'
+    PUBSUB='pubsub'
+    PUBLISH='publish'
+    REMOVED='@removed'
+    RETURN='return'
+    RULE='rule'
+    RULE_GROUP='rule_group'
+    SERVICE='service'
+    SQL='sql'
+    SQL_DATABASE='sql_database'
+    SQL_TABLE='sql_table'
+    SQL_VIRTUAL='sql_virtual'
+    SQL_WITHOUT_ROWID='sql_without_rowid'
+    STRING='string'
+    STRUCTURE='struct'
+    SUBSCRIBE='subscribe'
+    SUBTYPE='subtype'
+    TOPIC='topic'
+    UINT16='uint16'
+    UINT32='uint32'
+    UINT64='uint64'
+    UINT8='uint8'
+    UNION='union'
+    USING='using'
+    VALUEOF='valueof'
+    VARINT='varint'
+    VARINT16='varint16'
+    VARINT32='varint32'
+    VARINT64='varint64'
+    VARSIZE='varsize'
+    VARUINT='varuint'
+    VARUINT16='varuint16'
+    VARUINT32='varuint32'
+    VARUINT64='varuint64'
+    COMPAT_VERSION='zserio_compatibility_version'
+    BOOL_LITERAL='regexp:true|false'
+    STRING_LITERAL='regexp:"[^"]*"'
+    BINARY_LITERAL='regexp:[01]+[bB]'
+    OCTAL_LITERAL='regexp:0[0-7]+'
+    HEXADECIMAL_LITERAL='regexp:0[xX][0-9a-fA-F]+'
+    DOUBLE_LITERAL='regexp:[0-9]+[.][0-9]*'
+    FLOAT_LITERAL='regexp:[0-9]+[.][0-9]*[fF]'
+    DECIMAL_LITERAL='regexp:[0-9]+'
+    IDENTIFIER='regexp:[a-zA-Z_][a-zA-Z_0-9]*'
+    LINE_COMMENT='regexp://[^\n]*'
+    BLOCK_COMMENT='regexp:/[*][^*]*[*]/'
+    DOC_COMMENT='regexp:/[*][*][^*]*[*]/'
+  ]
+
+  extends(".*_expression")=expression
+
+  // Everything that declares a name gets the common named element base class.
+  implements("const_definition|rule_group_definition|subtype_declaration|struct_declaration|choice_declaration|union_declaration|enum_declaration|bitmask_declaration|sql_table_declaration|sql_database_declaration|service_definition|pubsub_definition|instantiate_declaration|enum_item|bitmask_value|field_type_id|parameter_definition|template_parameter|function_definition|sql_table_field_definition|sql_database_field_definition|service_method_definition|pubsub_message_definition")="org.zserio.intellij.psi.ZserioNamedElement"
+  mixin("const_definition|rule_group_definition|subtype_declaration|struct_declaration|choice_declaration|union_declaration|enum_declaration|bitmask_declaration|sql_table_declaration|sql_database_declaration|service_definition|pubsub_definition|instantiate_declaration|enum_item|bitmask_value|field_type_id|parameter_definition|template_parameter|function_definition|sql_table_field_definition|sql_database_field_definition|service_method_definition|pubsub_message_definition")="org.zserio.intellij.psi.impl.ZserioNamedElementImpl"
+
+  // Identifiers are the only PSI elements that carry references.
+  mixin("id")="org.zserio.intellij.psi.impl.ZserioIdMixin"
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Package
+// ---------------------------------------------------------------------------------------------------------------------
+
+private zserio_file ::= compatibility_version_directive? package_name_definition? import_declaration* top_level_item_*
+
+compatibility_version_directive ::= 'zserio_compatibility_version' '(' STRING_LITERAL ')' ';' {pin=1}
+
+package_name_definition ::= 'package' id ('.' id)* ';' {pin=1}
+
+import_declaration ::= 'import' id ('.' id)* ('.' '*')? ';' {pin=1}
+
+private top_level_item_ ::= declaration_ | top_level_error_
+private top_level_error_ ::= <<errorToken>>
+
+private declaration_ ::= const_definition
+                      | rule_group_definition
+                      | subtype_declaration
+                      | struct_declaration
+                      | choice_declaration
+                      | union_declaration
+                      | enum_declaration
+                      | bitmask_declaration
+                      | sql_table_declaration
+                      | sql_database_declaration
+                      | service_definition
+                      | pubsub_definition
+                      | instantiate_declaration
+
+// Keywords which start a top level declaration; used to stop error recovery inside of a broken declaration body.
+private top_level_keyword_ ::= 'const' | 'rule_group' | 'subtype' | 'struct' | 'choice' | 'union' | 'enum'
+                             | 'bitmask' | 'sql_table' | 'sql_database' | 'service' | 'pubsub' | 'instantiate'
+
+private member_error_ ::= !('}' | top_level_keyword_) <<errorToken>>
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Constants and rules
+// ---------------------------------------------------------------------------------------------------------------------
+
+const_definition ::= 'const' type_instantiation id '=' expression ';' {pin=1}
+
+rule_group_definition ::= 'rule_group' id '{' (rule_definition | ';' | member_error_)* '}' ';' {pin=1}
+
+rule_definition ::= 'rule' expression ';' {pin=1}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Subtype and instantiation of templates
+// ---------------------------------------------------------------------------------------------------------------------
+
+subtype_declaration ::= 'subtype' type_reference id ';' {pin=1}
+
+instantiate_declaration ::= 'instantiate' type_reference id ';' {pin=1}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Structure
+// ---------------------------------------------------------------------------------------------------------------------
+
+struct_declaration ::= 'struct' id template_parameters? type_parameters? '{' struct_member_* '}' ';' {pin=1}
+
+private struct_member_ ::= function_definition | structure_field_definition | ';' | member_error_
+
+structure_field_definition ::= field_alignment? field_offset? 'extend'? 'optional'? field_type_id
+                               field_initializer? field_optional_clause? field_constraint? ';' {pin=5}
+
+field_alignment ::= 'align' '(' expression ')' ':' {pin=1}
+
+// An offset is only an offset when a field follows the colon. This resolves the ambiguity with a field constraint,
+// e.g. "Type<Param> field : field > 0;".
+field_offset ::= &(expression ':' ('extend' | 'optional' | field_type_id)) expression ':'
+
+field_type_id ::= 'packed'? 'implicit'? type_instantiation id field_array_range?
+
+field_array_range ::= '[' expression? ']'
+
+field_initializer ::= '=' expression
+
+field_optional_clause ::= 'if' expression
+
+field_constraint ::= ':' expression
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Choice
+// ---------------------------------------------------------------------------------------------------------------------
+
+choice_declaration ::= 'choice' id template_parameters? type_parameters 'on' expression
+                       '{' choice_member_* '}' ';' {pin=1}
+
+private choice_member_ ::= function_definition | choice_default | choice_cases | ';' | member_error_
+
+choice_cases ::= choice_case+ choice_field_definition? ';' {pin=1}
+
+choice_case ::= 'case' expression ':' {pin=1}
+
+choice_default ::= 'default' ':' choice_field_definition? ';' {pin=1}
+
+choice_field_definition ::= field_type_id field_constraint?
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Union
+// ---------------------------------------------------------------------------------------------------------------------
+
+union_declaration ::= 'union' id template_parameters? type_parameters? '{' union_member_* '}' ';' {pin=1}
+
+private union_member_ ::= function_definition | union_field_definition | ';' | member_error_
+
+union_field_definition ::= choice_field_definition ';' {pin=1}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Enumeration and bitmask
+// ---------------------------------------------------------------------------------------------------------------------
+
+enum_declaration ::= 'enum' type_instantiation id '{' enum_items_? '}' ';' {pin=1}
+
+private enum_items_ ::= enum_item (',' enum_item)* ','?
+
+enum_item ::= ('@deprecated' | '@removed')? id ('=' expression)? {recoverWhile=item_recover_}
+
+bitmask_declaration ::= 'bitmask' type_instantiation id '{' bitmask_values_? '}' ';' {pin=1}
+
+private bitmask_values_ ::= bitmask_value (',' bitmask_value)* ','?
+
+bitmask_value ::= id ('=' expression)? {recoverWhile=item_recover_}
+
+private item_recover_ ::= !(',' | '}')
+
+// ---------------------------------------------------------------------------------------------------------------------
+// SQL
+// ---------------------------------------------------------------------------------------------------------------------
+
+sql_table_declaration ::= 'sql_table' id template_parameters? ('using' id)?
+                          '{' sql_table_member_* '}' ';' {pin=1}
+
+private sql_table_member_ ::= sql_constraint_definition | sql_without_row_id | sql_table_field_definition
+                            | ';' | member_error_
+
+sql_table_field_definition ::= 'sql_virtual'? type_instantiation id sql_constraint? ';' {pin=3}
+
+sql_constraint_definition ::= sql_constraint ';' {pin=1}
+
+sql_constraint ::= 'sql' expression {pin=1}
+
+sql_without_row_id ::= 'sql_without_rowid' ';' {pin=1}
+
+sql_database_declaration ::= 'sql_database' id '{' (sql_database_field_definition | ';' | member_error_)* '}' ';' {pin=1}
+
+sql_database_field_definition ::= type_instantiation id ';' {pin=2}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Service and pubsub
+// ---------------------------------------------------------------------------------------------------------------------
+
+service_definition ::= 'service' id '{' (service_method_definition | ';' | member_error_)* '}' ';' {pin=1}
+
+service_method_definition ::= type_reference id '(' type_reference ')' ';' {pin=2}
+
+pubsub_definition ::= 'pubsub' id '{' (pubsub_message_definition | ';' | member_error_)* '}' ';' {pin=1}
+
+pubsub_message_definition ::= topic_definition type_reference id ';' {pin=3}
+
+topic_definition ::= ('publish' | 'subscribe')? 'topic' '(' expression ')' {pin=2}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Functions, parameters and templates
+// ---------------------------------------------------------------------------------------------------------------------
+
+function_definition ::= 'function' type_reference id '(' ')' function_body {pin=1}
+
+function_body ::= '{' 'return' expression ';' '}' {pin=1}
+
+type_parameters ::= '(' parameter_definition (',' parameter_definition)* ')' {pin=1}
+
+parameter_definition ::= type_reference id
+
+template_parameters ::= '<' template_parameter (',' template_parameter)* '>' {pin=1}
+
+template_parameter ::= id
+
+template_arguments ::= '<' template_argument (',' template_argument)* '>' {pin=1}
+
+template_argument ::= type_reference
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------------------------------------------------
+
+type_reference ::= builtin_type | qualified_name template_arguments?
+
+type_instantiation ::= type_reference (type_arguments | dynamic_length_argument)?
+
+qualified_name ::= id ('.' id)*
+
+type_arguments ::= '(' type_argument (',' type_argument)* ')' {pin=1}
+
+type_argument ::= 'explicit' id | expression
+
+// "bit<expr>": the closing '>' must not be consumed as a relational operator by the length expression.
+dynamic_length_argument ::= '<' <<noGt length_expression_>> '>' {pin=1}
+
+private length_expression_ ::= expression
+
+builtin_type ::= ('bit' | 'int') ':' DECIMAL_LITERAL
+               | 'bit' | 'int'
+               | 'int8' | 'int16' | 'int32' | 'int64'
+               | 'uint8' | 'uint16' | 'uint32' | 'uint64'
+               | 'varint' | 'varint16' | 'varint32' | 'varint64' | 'varsize'
+               | 'varuint' | 'varuint16' | 'varuint32' | 'varuint64'
+               | 'bool' | 'string' | 'float16' | 'float32' | 'float64' | 'extern' | 'bytes'
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Expressions (ordered from the lowest to the highest priority)
+// ---------------------------------------------------------------------------------------------------------------------
+
+expression ::= ternary_expression
+             | logical_or_expression
+             | logical_and_expression
+             | bitwise_or_expression
+             | bitwise_xor_expression
+             | bitwise_and_expression
+             | equality_expression
+             | relational_expression
+             | shift_expression
+             | additive_expression
+             | multiplicative_expression
+             | unary_expression
+             | function_call_expression
+             | array_expression
+             | dot_expression
+             | isset_expression
+             | lengthof_expression
+             | valueof_expression
+             | numbits_expression
+             | parenthesized_expression
+             | literal_expression
+             | index_expression
+             | identifier_expression
+
+ternary_expression        ::= expression '?' expression ':' expression {rightAssociative=true}
+logical_or_expression     ::= expression '||' expression
+logical_and_expression    ::= expression '&&' expression
+bitwise_or_expression     ::= expression '|' expression
+bitwise_xor_expression    ::= expression '^' expression
+bitwise_and_expression    ::= expression '&' expression
+equality_expression       ::= expression ('==' | '!=') expression
+relational_expression     ::= expression ('<=' | '>=' | '<' | relational_gt_) expression
+shift_expression          ::= expression ('<<' | gt_ gt_) expression
+additive_expression       ::= expression ('+' | '-') expression
+multiplicative_expression ::= expression ('*' | '/' | '%') expression
+unary_expression          ::= ('+' | '-' | '!' | '~') expression
+function_call_expression  ::= expression '(' ')'
+array_expression          ::= expression '[' expr_ ']'
+dot_expression            ::= expression '.' id
+isset_expression          ::= 'isset' '(' expr_ ',' expr_ ')'
+lengthof_expression       ::= 'lengthof' '(' expr_ ')'
+valueof_expression        ::= 'valueof' '(' expr_ ')'
+numbits_expression        ::= 'numbits' '(' expr_ ')'
+parenthesized_expression  ::= '(' expr_ ')'
+literal_expression        ::= BINARY_LITERAL | OCTAL_LITERAL | DECIMAL_LITERAL | HEXADECIMAL_LITERAL
+                            | BOOL_LITERAL | STRING_LITERAL | FLOAT_LITERAL | DOUBLE_LITERAL
+index_expression          ::= '@index'
+identifier_expression     ::= id
+
+// Inside of atoms the nested expression starts again with the lowest priority.
+private expr_ ::= expression
+
+private gt_ ::= <<gtAllowed>> '>'
+
+// A single '>' is a relational operator, '>>' is a shift (the lexer produces two '>' tokens).
+private relational_gt_ ::= gt_ !'>'
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Identifier
+// ---------------------------------------------------------------------------------------------------------------------
+
+id ::= IDENTIFIER

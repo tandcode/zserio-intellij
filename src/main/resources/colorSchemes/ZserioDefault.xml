@@ -1,0 +1,10 @@
+<scheme name="Default" version="142" parent_scheme="Default">
+  <attributes>
+    <!-- Same teal as type parameters in Java -->
+    <option name="ZSERIO_TEMPLATE_PARAMETER">
+      <value>
+        <option name="FOREGROUND" value="20999d"/>
+      </value>
+    </option>
+  </attributes>
+</scheme>

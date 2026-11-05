@@ -1,0 +1,14 @@
+.gradle/
+build/
+.kotlin/
+.intellijPlatform/
+.idea/
+*.iml
+out/
+.DS_Store
+local.properties
+.agentbridge/
+chain.crt
+private.pem
+private_encrypted.pem
+bin/

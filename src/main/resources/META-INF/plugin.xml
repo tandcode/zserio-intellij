@@ -1,0 +1,67 @@
+<idea-plugin>
+    <id>org.zserio.language</id>
+    <name>Zserio</name>
+    <vendor email="tandcode@gmail.com" url="https://github.com/tandcode/zserio-intellij">Zserio IntelliJ plugin contributors</vendor>
+
+    <description><![CDATA[
+        Language support for <a href="https://zserio.org">Zserio</a> schema files (<code>*.zs</code>).
+        Supports Zserio 2.0 to 2.20 without any configuration.
+        <ul>
+            <li>Syntax highlighting and semantic highlighting of types, fields, constants and enumeration items</li>
+            <li>Parser with error reporting</li>
+            <li>Go to declaration, find usages and rename for types, fields, parameters, constants and functions
+                (packages and imports are taken into account)</li>
+            <li>Go to Class and Go to Symbol for types, constants, fields, functions and enumeration items</li>
+            <li>Code completion for keywords, types and members</li>
+            <li>Warnings for language features newer than the <code>zserio_compatibility_version</code> of a file</li>
+            <li>Structure view, code folding, brace matching and commenting</li>
+        </ul>
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <fileType name="Zserio"
+                  implementationClass="org.zserio.intellij.ZserioFileType"
+                  fieldName="INSTANCE"
+                  language="Zserio"
+                  extensions="zs"/>
+
+        <lang.parserDefinition language="Zserio"
+                               implementationClass="org.zserio.intellij.parser.ZserioParserDefinition"/>
+        <lang.syntaxHighlighterFactory language="Zserio"
+                                       implementationClass="org.zserio.intellij.ide.ZserioSyntaxHighlighterFactory"/>
+        <lang.braceMatcher language="Zserio"
+                           implementationClass="org.zserio.intellij.ide.ZserioBraceMatcher"/>
+        <lang.commenter language="Zserio"
+                        implementationClass="org.zserio.intellij.ide.ZserioCommenter"/>
+        <lang.foldingBuilder language="Zserio"
+                             implementationClass="org.zserio.intellij.ide.ZserioFoldingBuilder"/>
+        <lang.findUsagesProvider language="Zserio"
+                                 implementationClass="org.zserio.intellij.ide.ZserioFindUsagesProvider"/>
+        <lang.psiStructureViewFactory language="Zserio"
+                                      implementationClass="org.zserio.intellij.ide.ZserioStructureViewFactory"/>
+        <lang.namesValidator language="Zserio"
+                             implementationClass="org.zserio.intellij.ide.ZserioNamesValidator"/>
+
+        <annotator language="Zserio"
+                   implementationClass="org.zserio.intellij.ide.ZserioSemanticAnnotator"/>
+        <annotator language="Zserio"
+                   implementationClass="org.zserio.intellij.ide.ZserioVersionAnnotator"/>
+        <externalAnnotator language="Zserio"
+                           implementationClass="org.zserio.intellij.ide.ZserioCompilerAnnotator"/>
+        <applicationConfigurable parentId="tools"
+                                 instance="org.zserio.intellij.settings.ZserioConfigurable"
+                                 id="org.zserio.intellij.settings"
+                                 displayName="Zserio"/>
+        <completion.contributor language="Zserio"
+                                implementationClass="org.zserio.intellij.ide.ZserioCompletionContributor"/>
+        <fileBasedIndex implementation="org.zserio.intellij.ide.ZserioTypeNameIndex"/>
+        <fileBasedIndex implementation="org.zserio.intellij.ide.ZserioSymbolNameIndex"/>
+        <gotoClassContributor implementation="org.zserio.intellij.ide.ZserioClassContributor"/>
+        <gotoSymbolContributor implementation="org.zserio.intellij.ide.ZserioSymbolContributor"/>
+        <colorSettingsPage implementation="org.zserio.intellij.ide.ZserioColorSettingsPage"/>
+        <additionalTextAttributes scheme="Default" file="colorSchemes/ZserioDefault.xml"/>
+        <additionalTextAttributes scheme="Darcula" file="colorSchemes/ZserioDarcula.xml"/>
+    </extensions>
+</idea-plugin>
